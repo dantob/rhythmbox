@@ -40,7 +40,6 @@ from LyricsConfigureDialog import LyricsConfigureDialog
 import gettext
 gettext.install('rhythmbox', RB.locale_dir())
 
-
 LYRIC_TITLE_STRIP=["(live[^)]*)", "(acoustic[^)]*)", "([^)]*mix)", "([^)]*version)", "([^)]*edit)", "(feat[^)]*)"]
 LYRIC_TITLE_REPLACE=[("/", "-"), (" & ", " and ")]
 LYRIC_ARTIST_REPLACE=[("/", "-"), (" & ", " and ")]
@@ -60,7 +59,7 @@ def create_lyrics_view():
 
 	vbox = Gtk.VBox(spacing=12)
 	vbox.pack_start(sw, True, True, 0)
-	
+
 	return (vbox, tview.get_buffer(), tview)
 
 def parse_song_data(db, entry):
@@ -75,7 +74,7 @@ def parse_song_data(db, entry):
 	# convert to lowercase
 	artist = artist.lower()
 	title = title.lower()
-	
+
 	# replace ampersands and the like
 	for exp in LYRIC_ARTIST_REPLACE:
 		artist = re.sub(exp[0], exp[1], artist)
@@ -88,8 +87,8 @@ def parse_song_data(db, entry):
 
 	# compress spaces
 	title = title.strip()
-	artist = artist.strip()	
-	
+	artist = artist.strip()
+
 	return (artist, title)
 
 def get_artist_and_title(db, entry):
@@ -115,7 +114,7 @@ def extract_artist_and_title(stream_song_title):
 			title = stream_song_title
 			artist = ""
 	return (artist, title)
-	
+
 def build_cache_path(artist, title):
 	settings = Gio.Settings.new("org.gnome.rhythmbox.plugins.lyrics")
 	folder = settings['folder']
@@ -131,6 +130,7 @@ def build_cache_path(artist, title):
 		os.mkdir (artist_folder)
 
 	return os.path.join(artist_folder, title[:128] + '.lyric')
+
 
 class LyricGrabber(object):
 	"""
@@ -240,19 +240,19 @@ class LyricPane(object):
 		self.db = db
 		self.song_info = song_info
 		self.entry = self.song_info.props.current_entry
-		
+
 		self.build_path()
-		
+
 		def save_lyrics(cache_path, text):
 			f = open(cache_path, 'wt')
 			f.write(text)
 			f.close()
-		
+
 		def erase_lyrics(cache_path):
 			f = open(cache_path, 'w')
 			f.write("")
 			f.close()
-		
+
 		def save_callback():
 			buf = self.buffer
 			startiter = buf.get_start_iter()
@@ -260,7 +260,7 @@ class LyricPane(object):
 			text = buf.get_text(startiter, enditer, True)
 			save_lyrics(self.cache_path, text)
 			self.get_lyrics()
-		
+
 		def edit_callback(widget):
 			if self.edit.get_active() == 1:
 				self.tview.set_editable(True)
@@ -275,12 +275,11 @@ class LyricPane(object):
 			if self.cache_path is not None and os.path.exists(self.cache_path):
 				os.remove(self.cache_path)
 			self.get_lyrics()
-		
+
 		def clear_callback(widget):
 			if self.cache_path is not None and os.path.exists (self.cache_path):
 				erase_lyrics(self.cache_path)
 			self.get_lyrics()
-	   
 
 		self.edit = Gtk.ToggleButton(label=_("_Edit"), use_underline=True)
 		self.edit.connect('toggled', edit_callback)
@@ -301,7 +300,7 @@ class LyricPane(object):
 		self.view.pack_start(self.hbox, False, False, 0)
 		self.view.set_spacing(6)
 		self.view.props.margin = 6
-	
+
 		self.view.show_all()
 		self.page_num = song_info.append_page(_("Lyrics"), self.view)
 		self.have_lyrics = 0
@@ -310,7 +309,7 @@ class LyricPane(object):
 		self.entry_change_id = song_info.connect('notify::current-entry', self.entry_changed)
 		nb = self.view.get_parent()
 		self.switch_page_id = nb.connect('switch-page', self.switch_page_cb)
-		
+
 		#self.get_lyrics()
 
 	def build_path(self):
@@ -343,7 +342,7 @@ class LyricPane(object):
 		if self.entry is None:
 			return
 
-		self.buffer.set_text(_("Searching for lyrics..."), -1);
+		self.buffer.set_text(_("Searching for lyrics..."), -1)
 		lyrics_grabber = LyricGrabber(self.db, self.entry)
 		lyrics_grabber.search_lyrics(self.__got_lyrics)
 
@@ -357,7 +356,7 @@ class LyricWindow (Gtk.Window):
 
 		close = Gtk.Button.new_from_stock(Gtk.STOCK_CLOSE)
 		close.connect('clicked', lambda w: self.destroy())
-	
+
 		(lyrics_view, buffer, tview) = create_lyrics_view()
 		self.buffer = buffer
 		bbox = Gtk.HButtonBox()
@@ -367,7 +366,7 @@ class LyricWindow (Gtk.Window):
 
 		sp = shell.props.shell_player
 		self.ppc_id = sp.connect('playing-song-property-changed', self.playing_property_changed)
-	
+
 		self.add(lyrics_view)
 		self.set_default_size(400, 300)
 		self.show_all()
@@ -378,10 +377,9 @@ class LyricWindow (Gtk.Window):
 		Gtk.Window.destroy(self)
 
 	def playing_property_changed(self, player, uri, prop, old_val, new_val):
-		if (prop == STREAM_SONG_TITLE):
+		if prop == STREAM_SONG_TITLE:
 			self.update_song_lyrics(player.get_playing_entry())
 
-	
 	def __got_lyrics(self, text):
 		self.buffer.set_text (text, -1)
 
@@ -425,7 +423,7 @@ class LyricsDisplayPlugin(GObject.Object, Peas.Activatable):
 
 	def do_deactivate (self):
 		shell = self.object
-			
+
 		app = shell.props.application
 		app.remove_plugin_menu_item("view", "view-lyrics")
 		app.remove_action("view-lyrics")
@@ -441,7 +439,6 @@ class LyricsDisplayPlugin(GObject.Object, Peas.Activatable):
 		if self.window is not None:
 			self.window.destroy ()
 			self.window = None
-
 
 	def show_song_lyrics (self, action, parameter, shell):
 
@@ -468,7 +465,7 @@ class LyricsDisplayPlugin(GObject.Object, Peas.Activatable):
 	def window_deleted (self, window):
 		print("lyrics window destroyed")
 		self.window = None
-	
+
 	def create_song_info (self, shell, song_info, is_multiple):
 		if is_multiple is False:
 			x = LyricPane(shell.props.db, song_info)
@@ -480,4 +477,3 @@ class LyricsDisplayPlugin(GObject.Object, Peas.Activatable):
 
 		lyrics_grabber = LyricGrabber(db, entry)
 		lyrics_grabber.search_lyrics(lyrics_results)
-
