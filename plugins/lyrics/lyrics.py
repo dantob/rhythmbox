@@ -138,7 +138,8 @@ class LyricGrabber(object):
 
 	1. Local cache file
 	2. Lyric tags in file meta data
-	3. Online services
+	3. Sidecar .lrc file
+	4. Online services
 	"""
 	def __init__(self, db, entry):
 		self.db = db
@@ -155,7 +156,7 @@ class LyricGrabber(object):
 		"""
 		Fetch lyrics from cache.
 
-		If no cache file exist, tag extraction is tried next.
+		If no cache file exist, tag extraction is tried next, then sidecar file, finaly falls back to online services.
 		"""
 		self.callback = callback
 
@@ -186,14 +187,14 @@ class LyricGrabber(object):
 		"""
 		Extract lyrics from the file meta data (tags).
 
-		If no lyrics tags are found, online services are tried next.
+		If no lyrics tags are found, sidecar files are tried next.
 
 		Supported file formats and lyrics tags:
 		- ogg/vorbis files with "LYRICS" and "SYNCLYRICS" tag
 		"""
 		tags = info.get_tags()
 		if tags is None:
-			self.search_online()
+			self.search_sidecar()
 			return
 
 		for i in range(tags.get_tag_size("extended-comment")):
@@ -208,6 +209,30 @@ class LyricGrabber(object):
 				text = value.replace("SYNCLYRICS=", "")
 				self.lyrics_found(text)
 				return
+
+		self.search_sidecar()
+
+	def search_sidecar(self):
+		"""
+		Look for a sidecar .lrc file in the same directory as the audio file.
+
+		If no sidecar file is found, online services are tried next.
+		"""
+		location = self.entry.get_string(RB.RhythmDBPropType.LOCATION)
+		if location:
+			file_uri = Gio.File.new_for_uri(location)
+			if file_uri.has_uri_scheme('file'):
+				file_path = file_uri.get_path()
+				if file_path:
+					lrc_path = os.path.splitext(file_path)[0] + ".lrc"
+					if os.path.isfile(lrc_path) and os.access(lrc_path, os.R_OK):
+						lrc_file = open(lrc_path, 'rt', encoding='utf-8', errors='replace')
+						text = lrc_file.read()
+						lrc_file.close()
+						# don't cache sidecar files, to prevent them from becoming stale
+						#self.lyrics_found(text)
+						self.callback(text)
+						return
 
 		self.search_online()
 
