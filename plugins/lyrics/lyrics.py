@@ -126,8 +126,6 @@ def build_cache_path(artist, title):
 		os.mkdir (lyrics_folder)
 
 	artist_folder = os.path.join(lyrics_folder, artist[:128])
-	if not os.path.exists (artist_folder):
-		os.mkdir (artist_folder)
 
 	return os.path.join(artist_folder, title[:128] + '.lyric')
 
@@ -253,6 +251,9 @@ class LyricGrabber(object):
 
 
 	def lyrics_found(self, text):
+		cache_dir = os.path.dirname(self.cache_path)
+		if not os.path.exists(cache_dir):
+			os.makedirs(cache_dir)
 		f = open(self.cache_path, 'wt')
 		f.write(text)
 		f.close()
@@ -269,6 +270,9 @@ class LyricPane(object):
 		self.build_path()
 
 		def save_lyrics(cache_path, text):
+			cache_dir = os.path.dirname(self.cache_path)
+			if not os.path.exists(cache_dir):
+				os.makedirs(cache_dir)
 			f = open(cache_path, 'wt')
 			f.write(text)
 			f.close()
