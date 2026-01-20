@@ -21,6 +21,8 @@ cc = meson.get_compiler('c')
 
 common_cflags = [
   '-DGLIB_DISABLE_DEPRECATION_WARNINGS',
+  '-DGDK_DISABLE_DEPRECATED',
+  '-DGTK_DISABLE_DEPRECATED'
 ]
 test_cflags = [
   '-Wno-deprecated-declarations',
@@ -381,4 +383,3 @@ endif
 if get_option('help')
   subdir('help')
 endif
-
