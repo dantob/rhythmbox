@@ -45,7 +45,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <libxml/entities.h>
-#include <libxml/SAX.h>
+#include <libxml/SAX2.h>
 #include <libxml/parserInternals.h>
 
 #include "rhythmdb-private.h"
@@ -768,6 +768,7 @@ rhythmdb_tree_load (RhythmDB *rdb,
 	sax_handler = g_new0 (xmlSAXHandler, 1);
 	ctx = g_new0 (struct RhythmDBTreeLoadContext, 1);
 
+	sax_handler->initialized = XML_SAX2_MAGIC;
 	sax_handler->startElement = (startElementSAXFunc) rhythmdb_tree_parser_start_element;
 	sax_handler->endElement = (endElementSAXFunc) rhythmdb_tree_parser_end_element;
 	sax_handler->characters = (charactersSAXFunc) rhythmdb_tree_parser_characters;
