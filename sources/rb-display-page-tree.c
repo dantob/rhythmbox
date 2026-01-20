@@ -325,7 +325,7 @@ expander_cell_data_func (GtkTreeViewColumn *column,
 
 		g_object_set (cell,
 			      "visible", TRUE,
-			      "expander-style", row_expanded ? GTK_EXPANDER_EXPANDED : GTK_EXPANDER_COLLAPSED,
+			      "expanded", row_expanded,
 			      NULL);
 	}
 
@@ -547,15 +547,15 @@ rb_display_page_tree_toggle_expanded (RBDisplayPageTree *display_page_tree,
 		rb_debug ("collapsing page %p", page);
 		gtk_tree_view_collapse_row (GTK_TREE_VIEW (display_page_tree->priv->treeview), path);
 		g_object_set (display_page_tree->priv->expander_renderer,
-			      "expander-style",
-			      GTK_EXPANDER_COLLAPSED,
+			      "expanded",
+			      FALSE,
 			      NULL);
 	} else {
 		rb_debug ("expanding page %p", page);
 		gtk_tree_view_expand_row (GTK_TREE_VIEW (display_page_tree->priv->treeview), path, FALSE);
 		g_object_set (display_page_tree->priv->expander_renderer,
-			      "expander-style",
-			      GTK_EXPANDER_EXPANDED,
+			      "expanded",
+			      TRUE,
 			      NULL);
 	}
 

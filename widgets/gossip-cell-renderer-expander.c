@@ -58,7 +58,7 @@ static gboolean gossip_cell_renderer_expander_activate     (GtkCellRenderer     
 /* Properties */
 enum {
 	PROP_0,
-	PROP_EXPANDER_STYLE,
+	PROP_EXPANDED,
 	PROP_EXPANDER_SIZE,
 	PROP_ACTIVATABLE
 };
@@ -69,7 +69,7 @@ struct _GossipCellRendererExpanderPriv {
 	gint                 expander_size;
 
 	guint                activatable : 1;
-	GtkExpanderStyle     expander_style;
+	gboolean             expanded;
 };
 
 G_DEFINE_TYPE (GossipCellRendererExpander, gossip_cell_renderer_expander, GTK_TYPE_CELL_RENDERER)
@@ -83,6 +83,7 @@ gossip_cell_renderer_expander_init (GossipCellRendererExpander *expander)
 
 	priv->expander_size = 12;
 	priv->activatable = TRUE;
+	priv->expanded = FALSE;
 
 	gtk_cell_renderer_set_padding (GTK_CELL_RENDERER (expander), 2, 2);
 	g_object_set (expander,
@@ -107,13 +108,12 @@ gossip_cell_renderer_expander_class_init (GossipCellRendererExpanderClass *klass
 	cell_class->activate = gossip_cell_renderer_expander_activate;
 
 	g_object_class_install_property (object_class,
-					 PROP_EXPANDER_STYLE,
-					 g_param_spec_enum ("expander-style",
-							    "Expander Style",
-							    "Style to use when painting the expander",
-							    GTK_TYPE_EXPANDER_STYLE,
-							    GTK_EXPANDER_COLLAPSED,
-							    G_PARAM_READWRITE));
+					 PROP_EXPANDED,
+					 g_param_spec_boolean ("expanded",
+							       "Expanded",
+							       "Whether the row is expanded",
+							       FALSE,
+							       G_PARAM_READWRITE));
 
 	g_object_class_install_property (object_class,
 					 PROP_EXPANDER_SIZE,
@@ -149,8 +149,8 @@ gossip_cell_renderer_expander_get_property (GObject    *object,
 	priv = GET_PRIV (expander);
 
 	switch (param_id) {
-	case PROP_EXPANDER_STYLE:
-		g_value_set_enum (value, priv->expander_style);
+	case PROP_EXPANDED:
+		g_value_set_boolean (value, priv->expanded);
 		break;
 
 	case PROP_EXPANDER_SIZE:
@@ -180,8 +180,8 @@ gossip_cell_renderer_expander_set_property (GObject      *object,
 	priv = GET_PRIV (expander);
 
 	switch (param_id) {
-	case PROP_EXPANDER_STYLE:
-		priv->expander_style = g_value_get_enum (value);
+	case PROP_EXPANDED:
+		priv->expanded = g_value_get_boolean (value);
 		break;
 
 	case PROP_EXPANDER_SIZE:
@@ -281,7 +281,7 @@ gossip_cell_renderer_expander_render (GtkCellRenderer      *cell,
 
 	state = gtk_cell_renderer_get_state (cell, widget, flags);
 
-	if (priv->expander_style == GTK_EXPANDER_COLLAPSED) {
+	if (!priv->expanded) {
 		state |= GTK_STATE_FLAG_NORMAL;
 	} else {
 #if GTK_CHECK_VERSION(3,13,7)
